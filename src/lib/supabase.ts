@@ -1,46 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
-import { createBrowserClient, createServerClient } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// Main Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
 // Browser client for client components
-export const createClientComponentClient = () =>
-  createBrowserClient(supabaseUrl, supabaseAnonKey)
-
-// Server client for Server Components
-export const createServerComponentClient = (cookieStore: any) =>
-  createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-      },
-    }
-  )
-
-// Server client for Route Handlers
-export const createRouteHandlerClient = (cookieStore: any) =>
-  createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: any) {
-          cookieStore.set({ name, value, ...options })
-        },
-        remove(name: string, options: any) {
-          cookieStore.set({ name, value: '', ...options })
-        },
-      },
-    }
-  )
-
-// Legacy client for backward compatibility
-export const supabase = createClient(supabaseUrl, supabaseAnonKey) 
+export const createClientComponentClient = () => 
+  createClient(supabaseUrl, supabaseAnonKey) 
