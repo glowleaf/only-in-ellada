@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Header } from '@/components/Header'
 import { StoryCard } from '@/components/StoryCard'
 import { CreateStoryModal } from '@/components/CreateStoryModal'
@@ -18,21 +18,16 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const supabase = createClientComponentClient()
 
-  useEffect(() => {
-    fetchCategories()
-    fetchStories()
-  }, [selectedCategory, sortBy])
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     const { data } = await supabase
       .from('categories')
       .select('*')
       .order('name')
     
     if (data) setCategories(data)
-  }
+  }, [supabase])
 
-  const fetchStories = async () => {
+  const fetchStories = useCallback(async () => {
     setLoading(true)
     
     let query = supabase
@@ -73,7 +68,7 @@ export default function Home() {
     if (data) {
       // Transform data to include comment counts and user votes
       const storiesWithDetails: StoryWithDetails[] = await Promise.all(
-        data.map(async (story: any) => {
+        data.map(async (story: Record<string, unknown>) => {
           // Get comment count
           const { count } = await supabase
             .from('comments')
@@ -83,8 +78,8 @@ export default function Home() {
           return {
             ...story,
             comment_count: count || 0,
-            user_vote: story.votes?.[0] || null
-          }
+            user_vote: (story.votes as Record<string, unknown>[])?.[0] || null
+          } as StoryWithDetails
         })
       )
 
@@ -92,7 +87,15 @@ export default function Home() {
     }
     
     setLoading(false)
-  }
+  }, [supabase, selectedCategory, categories, sortBy, user])
+
+  useEffect(() => {
+    fetchCategories()
+  }, [fetchCategories])
+
+  useEffect(() => {
+    fetchStories()
+  }, [fetchStories])
 
   const filters = [
     { key: 'all', label: '🕐 New', active: selectedCategory === 'all' && sortBy === 'new' },
@@ -126,16 +129,16 @@ export default function Home() {
           <h1>Share your 🇬🇷 Greece story</h1>
           <p>We love Greece ❤️</p>
           <div className="hero-description">
-            But we also experience many crazy and frustrating things we've never experienced 
+            But we also experience many crazy and frustrating things we&apos;ve never experienced 
             anywhere else in the world. Experiences that just make you pull your hair out, or laugh at 
             how completely absurd and Kafka-esque basic service interactions can be in Greece, 
             with businesses, government services, or even just restaurants.
             <br /><br />
-            When we complain, the usual response from Greeks online is "if you don't like it, leave". 
-            But that doesn't seem to be a very productive approach.
+            When we complain, the usual response from Greeks online is &quot;if you don&apos;t like it, leave&quot;. 
+            But that doesn&apos;t seem to be a very productive approach.
             <br /><br />
             We want to collect these stories to understand patterns, find solutions, and maybe just 
-            have a good laugh (or cry) together. Because sometimes you need to know you're not alone 
+            have a good laugh (or cry) together. Because sometimes you need to know you&apos;re not alone 
             in experiencing the beautiful madness that is Greece.
           </div>
           <button 

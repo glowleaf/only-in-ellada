@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { StoryWithDetails } from '@/types/database'
 import { VoteButtons } from './VoteButtons'

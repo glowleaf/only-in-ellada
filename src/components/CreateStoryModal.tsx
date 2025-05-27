@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from './AuthProvider'
 import { createClientComponentClient } from '@/lib/supabase'
 import { Category } from '@/types/database'
@@ -20,18 +20,18 @@ export function CreateStoryModal({ onClose, onStoryCreated }: CreateStoryModalPr
   const [error, setError] = useState('')
   const supabase = createClientComponentClient()
 
-  useEffect(() => {
-    fetchCategories()
-  }, [])
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     const { data } = await supabase
       .from('categories')
       .select('*')
       .order('name')
     
     if (data) setCategories(data)
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    fetchCategories()
+  }, [fetchCategories])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,8 +63,9 @@ export function CreateStoryModal({ onClose, onStoryCreated }: CreateStoryModalPr
 
       onStoryCreated()
       onClose()
-    } catch (err: any) {
-      setError(err.message || 'Failed to create story')
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create story'
+      setError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
